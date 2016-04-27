@@ -51,6 +51,15 @@ case class Tuple(left: Sort, right: Sort) extends Sort { override def toString =
 /** User-defined object sort */
 case class ObjectSort(name : String) extends Sort { override def toString = name }
 
+/**
+  * Units of measure
+  */
+sealed abstract class UnitOfMeasure
+/** General unit type, where the int is a unique identifier (icky, but hopefully enough for now) */
+case class UnitUnit(id: Int) extends UnitOfMeasure { override def toString = "UnitOfMeasure " + id.toString() }
+/** The unit of measure of any variable without an annotation in the ProgramVariables section. Matches any other unit. */
+object UnknownUnit extends UnitOfMeasure
+
 
 /**
  * Expressions of differential dynamic logic.
