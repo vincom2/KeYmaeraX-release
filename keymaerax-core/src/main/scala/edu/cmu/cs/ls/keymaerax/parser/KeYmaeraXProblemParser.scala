@@ -97,7 +97,14 @@ object KeYmaeraXDeclarationsParser {
     parseDeclarations(tokens)
 
   def parseDeclarations(tokens: List[Token]): (Map[(String, Option[Int]), (Option[Sort], Sort, Token)], List[Token]) = {
-    if(tokens.head.tok.equals(PROGRAM_VARIABLES_BLOCK)) {
+    //@todo wow this is so hacky! gross
+    if(tokens.head.tok.equals(PROGRAM_UNITS_BLOCK)) {
+      val (programUnits, remainder1) = processProgramUnits(tokens)
+      val (programVariables, remainder2) = processProgramVariables(remainder1)
+      val (functions, finalRemainder) = processFunctionSymbols(remainder2)
+      (programUnits ++ programVariables ++ functions, finalRemainder)
+    }
+    else if(tokens.head.tok.equals(PROGRAM_VARIABLES_BLOCK)) {
       val (programVariables, remainder) = processProgramVariables(tokens)
       val (functions, finalRemainder) = processFunctionSymbols(remainder)
       (programVariables ++ functions, finalRemainder)
@@ -159,6 +166,15 @@ object KeYmaeraXDeclarationsParser {
    *          _1: The list of Named Symbols.
    *          _2: The remainder of the file.
    */
+  def processProgramUnits(tokens: List[Token]) : (Map[(String, Option[Int]), (Option[Sort], Sort, Token)], List[Token]) = {
+    if(tokens.head.tok.equals(PROGRAM_UNITS_BLOCK)) {
+      val (progUnitsSection, remainder) = tokens.span(x => !x.tok.equals(END_BLOCK))
+      val progUnitsTokens = progUnitsSection.tail
+      (processDeclarations(progUnitsTokens, Map()), remainder.tail)
+    }
+    else (Map(), tokens)
+  }
+
   def processProgramVariables(tokens : List[Token]): (Map[(String, Option[Int]), (Option[Sort], Sort, Token)], List[Token]) = {
     if(tokens.head.tok.equals(PROGRAM_VARIABLES_BLOCK)) {
       val(progVarsSection, remainder) = tokens.span(x => !x.tok.equals(END_BLOCK))
@@ -213,7 +229,7 @@ object KeYmaeraXDeclarationsParser {
       case x => throw new Exception("Expected an identifier but found " + x.getClass().getCanonicalName())
     }
 
-    val afterName = ts.tail.tail //skip over IDENT and REAL/BOOL tokens.
+    val afterName = ts.tail.tail //skip over IDENT and REAL/BOOL/UNIT tokens.
     if(afterName.head.tok.equals(LPAREN)) {
       val (domainSort, remainder) = parseFunctionDomainSort(afterName, nameToken)
 
@@ -226,7 +242,7 @@ object KeYmaeraXDeclarationsParser {
       (( (nameTerminal.name, nameTerminal.index) , (None, sort, nameToken) ), afterName.tail)
     }
     else {
-      throw new ParseException("Variable declarations should end with a period.", afterName.head.loc, afterName.head.tok.img, ".", "", "declaration parse")
+      throw new ParseException("Variable/unit declarations should end with a period.", afterName.head.loc, afterName.head.tok.img, ".", "", "declaration parse")
     }
   }
 
@@ -266,6 +282,7 @@ object KeYmaeraXDeclarationsParser {
 
   private def parseSort(sortToken : Token, of: Token) : Sort = sortToken.tok match {
     case edu.cmu.cs.ls.keymaerax.parser.IDENT("R", _) => edu.cmu.cs.ls.keymaerax.core.Real
+    case edu.cmu.cs.ls.keymaerax.parser.IDENT("U", _) => edu.cmu.cs.ls.keymaerax.core.UnitOfMeasure
     case edu.cmu.cs.ls.keymaerax.parser.IDENT("P", _) => edu.cmu.cs.ls.keymaerax.core.Trafo
     //@todo do we need a cont. trafo sort to do well-formedness checking?
     case edu.cmu.cs.ls.keymaerax.parser.IDENT("CP", _) => edu.cmu.cs.ls.keymaerax.core.Trafo
@@ -290,6 +307,7 @@ object KeYmaeraXDeclarationsParser {
   private def isSort(terminal: Terminal) = terminal match {
     case REAL => true
     case BOOL => true
+    case UNIT => true
     case _    => false
   }
 
