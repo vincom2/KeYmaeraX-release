@@ -198,6 +198,12 @@ object LEMMA_AXIOM_NAME_PAT {
 object PERIOD extends Terminal(".") {
   override def regexp = "\\.".r
 }
+/* this will be used to support unit annotations in the ProgramVariables. section
+ * e.g. R x : m.
+ */
+object COLON extends Terminal(":") {
+  override def regexp = "\\:".r
+}
 object FUNCTIONS_BLOCK extends Terminal("Functions.") {
   //not totally necessary -- you'll still get the right behavior because . matches \. But also allows stuff like Functions: which maybe isn't terrible.
 //  override def regexp = """Functions\.""".r
@@ -393,6 +399,11 @@ object KeYmaeraXLexer extends ((String) => List[Token]) {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(PERIOD, loc)
         case _ => throw new Exception("Periods should only occur when processing files.")
       }*/
+      // I'm not sure why the PERIOD case doesn't check the file mode? so I'm just going to check for COLON
+      case COLON.startPattern(_*) => mode match {
+        case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(COLON, loc)
+        case _ => throw new Exception("Unit annotation should only occur when processing files.")
+      }
       case FUNCTIONS_BLOCK.startPattern(_*) => mode match {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(FUNCTIONS_BLOCK, loc)
         case _ => throw new Exception("Functions. should only occur when processing files.")
