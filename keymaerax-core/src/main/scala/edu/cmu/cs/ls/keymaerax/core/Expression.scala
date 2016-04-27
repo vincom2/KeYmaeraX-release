@@ -44,6 +44,8 @@ object Unit extends Sort { override def toString = "Unit" }
 object Bool extends Sort { override def toString = "Bool" }
 /** Sort of real numbers: 0, 1, 2.5 */
 object Real extends Sort { override def toString = "Real" }
+/** Sort of units of measure: m, s, etc */
+object UnitOfMeasure extends Sort { override def toString = "UnitOfMeasure" }
 /** Sort of state transformations (i.e. programs) */
 object Trafo extends Sort { override def toString = "Trafo" }
 /** Tuple sort for [[edu.cmu.cs.ls.keymaerax.core.Pair Pair]]. */
@@ -54,11 +56,11 @@ case class ObjectSort(name : String) extends Sort { override def toString = name
 /**
   * Units of measure
   */
-sealed abstract class UnitOfMeasure
+sealed abstract class MeasureUnit
 /** General unit type, where the int is a unique identifier (icky, but hopefully enough for now) */
-case class UnitUnit(id: Int) extends UnitOfMeasure { override def toString = "UnitOfMeasure " + id.toString() }
+case class UnitUnit(id: Int) extends MeasureUnit { override def toString = "UnitOfMeasure " + id.toString() }
 /** The unit of measure of any variable without an annotation in the ProgramVariables section. Matches any other unit. */
-object UnknownUnit extends UnitOfMeasure
+object UnknownUnit extends MeasureUnit
 
 
 /**
