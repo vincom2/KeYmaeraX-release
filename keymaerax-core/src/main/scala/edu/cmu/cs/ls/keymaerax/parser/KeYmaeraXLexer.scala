@@ -202,6 +202,7 @@ object FUNCTIONS_BLOCK extends Terminal("Functions.") {
   //not totally necessary -- you'll still get the right behavior because . matches \. But also allows stuff like Functions: which maybe isn't terrible.
 //  override def regexp = """Functions\.""".r
 }
+object PROGRAM_UNITS_BLOCK extends Terminal("ProgramUnits.")
 object PROGRAM_VARIABLES_BLOCK extends Terminal("ProgramVariables.")
 object VARIABLES_BLOCK extends Terminal("Variables.") //used in axioms file...
 object PROBLEM_BLOCK extends Terminal("Problem.")
@@ -209,6 +210,7 @@ object PROBLEM_BLOCK extends Terminal("Problem.")
 //@todo the following should all be removed or at most used as val REAL = Terminal("R")
 object REAL extends Terminal("$$$R")
 object BOOL extends Terminal("$$$B")
+object UNIT extends Terminal("$$$U")
 //Is there any reason we parse a bunch of stuff just to throw it away? Are these suppose to be in our sort heirarchy...?
 object TERM extends Terminal("$$$T")
 object PROGRAM extends Terminal("$$$P")
@@ -395,6 +397,10 @@ object KeYmaeraXLexer extends ((String) => List[Token]) {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(FUNCTIONS_BLOCK, loc)
         case _ => throw new Exception("Functions. should only occur when processing files.")
       }
+      case PROGRAM_UNITS_BLOCK.startPattern(_*) => mode match {
+        case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(PROGRAM_UNITS_BLOCK, loc)
+        case _ => throw new Exception("ProgramUnits. should only occur when processing files.")
+      }
       case PROGRAM_VARIABLES_BLOCK.startPattern(_*) => mode match {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(PROGRAM_VARIABLES_BLOCK, loc)
         case _ => throw new Exception("ProgramVariables. should only occur when processing files.")
@@ -410,6 +416,10 @@ object KeYmaeraXLexer extends ((String) => List[Token]) {
       case REAL.startPattern(_*) => mode match {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(REAL, loc)
         case _ => throw new Exception("Real symbol declaration should only occur when processing files.")
+      }
+      case UNIT.startPattern(_*) => mode match {
+        case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(UNIT, loc)
+        case _ => throw new Exception("Unit symbol declaration should only occur when processing files.")
       }
       case TERM.startPattern(_*) => mode match {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(TERM, loc)
