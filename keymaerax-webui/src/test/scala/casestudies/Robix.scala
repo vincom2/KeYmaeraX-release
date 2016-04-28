@@ -270,7 +270,7 @@ class Robix extends FlatSpec with Matchers with BeforeAndAfterEach {
       "-tactic", "keymaerax-webui/src/test/resources/examples/casestudies/robix/PassiveSafetyTacticGenerator.scala",
       "-out", outputFileName))
 
-    val inputModel = KeYmaeraXProblemParser(scala.io.Source.fromFile("keymaerax-webui/src/test/resources/examples/casestudies/robix/passivesafety.key").mkString)
+    val inputModel = KeYmaeraXProblemParser(scala.io.Source.fromFile("keymaerax-webui/src/test/resources/examples/casestudies/robix/passivesafety.key").mkString)._1
 
     val qq = "\"\"\"\""
     val expectedProofFileContent =

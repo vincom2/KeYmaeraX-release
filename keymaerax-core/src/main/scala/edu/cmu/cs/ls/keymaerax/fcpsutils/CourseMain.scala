@@ -105,7 +105,7 @@ object CourseMain {
   private def parseProblemFileOrFail(v: ArgValue) : Formula = {
     val fileName = fileExistsOrFail(v)
     try {
-      edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXProblemParser(scala.io.Source.fromFile(fileName).mkString)
+      edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXProblemParser(scala.io.Source.fromFile(fileName).mkString)._1
     }
     catch {
       case e : ParseException => {

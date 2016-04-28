@@ -184,7 +184,7 @@ object KeYmaeraX {
   private def parseProblemFile(fileName: String) = {
     try {
       val fileContents = scala.io.Source.fromFile(fileName).getLines().reduce(_ + "\n" + _)
-      val formula = KeYmaeraXProblemParser(fileContents);
+      val formula = KeYmaeraXProblemParser(fileContents)._1;
       println(KeYmaeraXPrettyPrinter(formula))
       println("Parsed file successfully");
       System.exit(0)
@@ -332,7 +332,7 @@ object KeYmaeraX {
     assert(inputFileNameDotKey.endsWith(".key"),
       "\n[Error] Wrong file name " + inputFileNameDotKey + " used for -prove! KeYmaera X only proves .key file. Please use: -prove FILENAME.key")
     val input = scala.io.Source.fromFile(inputFileNameDotKey).mkString
-    val inputModel = KeYmaeraXProblemParser(input)
+    val inputModel = KeYmaeraXProblemParser(input)._1
     val inputSequent = Sequent(Nil, immutable.IndexedSeq[Formula](), immutable.IndexedSeq(inputModel))
     val inputFileName = inputFileNameDotKey.dropRight(4)
     var outputFileName = inputFileName
@@ -425,7 +425,7 @@ object KeYmaeraX {
     assert(inputFileNameDotKey.endsWith(".key"),
       "\n[Error] Wrong file name " + inputFileNameDotKey + " used for -modelplex! ModelPlex only handles .key file. Please use: -modelplex FILENAME.key")
     val input = scala.io.Source.fromFile(inputFileNameDotKey).mkString
-    val inputModel = KeYmaeraXProblemParser(input)
+    val inputModel = KeYmaeraXProblemParser(input)._1
     val verifyOption = options.getOrElse('verify, true).asInstanceOf[Boolean]
     val inputFileName = inputFileNameDotKey.dropRight(4)
     var outputFileName = inputFileName

@@ -14,11 +14,14 @@ import scala.annotation.tailrec
  * Created by nfulton on 6/12/15.
  */
 object KeYmaeraXProblemParser {
-  def apply(input : String): Formula =
+  def apply(input : String): (Formula, Map[(String, Option[Int]), (Option[Sort], Sort)]) =
     try {
       firstNonASCIICharacter(input) match {
         case Some(pair) => throw ParseException(s"Input string contains non-ASCII character ${pair._2}", pair._1)
-        case None => parseProblem(KeYmaeraXLexer.inMode(input, ProblemFileMode()))._2
+        case None => {
+          val (f, m) = parseProblem(KeYmaeraXLexer.inMode(input, ProblemFileMode()))
+          (m, f)
+        }
       }
     }
     catch {case e: ParseException => throw e.inInput(input)}

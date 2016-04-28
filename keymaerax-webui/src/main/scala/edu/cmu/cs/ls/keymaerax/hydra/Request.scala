@@ -403,7 +403,7 @@ class CreateModelRequest(db : DBAbstraction, userId : String, nameOfModel : Stri
   def getResultingResponses() = {
     try {
       //Return the resulting response.
-      KeYmaeraXProblemParser(keyFileContents) match {
+      KeYmaeraXProblemParser(keyFileContents)._1 match {
         case f : Formula => {
           if(db.getModelList(userId).map(_.name).contains(nameOfModel)) {
             //Nope. Give a good error message.
@@ -989,7 +989,7 @@ class CheckIsProvedRequest(db: DBAbstraction, userId: String, proofId: String) e
   def getResultingResponses() = {
     val proof = db.getProofInfo(proofId)
     val model = db.getModel(proof.modelId)
-    val conclusionFormula = KeYmaeraXProblemParser(model.keyFile)
+    val conclusionFormula = KeYmaeraXProblemParser(model.keyFile)._1
     val conclusion = Sequent(Nil, immutable.IndexedSeq(), immutable.IndexedSeq(conclusionFormula))
     val trace = db.getExecutionTrace(proofId.toInt)
     val provable = trace.lastProvable

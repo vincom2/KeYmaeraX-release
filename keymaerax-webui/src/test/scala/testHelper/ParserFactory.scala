@@ -21,7 +21,7 @@ object ParserFactory {
    */
   def parseToSequent(in: java.io.InputStream) = {
     val content = io.Source.fromInputStream(in).mkString
-    KeYmaeraXProblemParser(content) match {
+    KeYmaeraXProblemParser(content)._1 match {
       case f: Formula => Sequent(List(), collection.immutable.IndexedSeq[Formula](), collection.immutable.IndexedSeq[Formula](f))
       case a => throw new IllegalArgumentException("Parsing the input did not result in a formula but in: " + a)
     }

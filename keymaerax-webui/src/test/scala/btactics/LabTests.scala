@@ -36,7 +36,7 @@ class LabTests extends TacticTestBase {
       val model = Source.fromFile(testDir + name).mkString
       var map = Map.empty[Expression, Formula]
       KeYmaeraXParser.setAnnotationListener({case (prog,fml) => map = map.+((prog,fml))})
-      val fml = KeYmaeraXProblemParser(model)
+      val fml = KeYmaeraXProblemParser(model)._1
       proveBy(fml, TactixLibrary.master(new ConfigurableGenerate[Formula](map)))
     }
 

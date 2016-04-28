@@ -34,7 +34,7 @@ class DeclsTests extends FlatSpec with Matchers {
         |x + z + z_0 = z_0 + z + x
         |End.
       """.stripMargin
-    KeYmaeraXProblemParser(input)
+    KeYmaeraXProblemParser(input)._1
   }
 
 }

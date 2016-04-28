@@ -745,7 +745,7 @@ object SQLite {
     private def getProofConclusion(proofId: Int): Sequent = {
       val modelId = getProofInfo(proofId).modelId
       val model = getModel(modelId)
-      KeYmaeraXProblemParser(model.keyFile) match {
+      KeYmaeraXProblemParser(model.keyFile)._1 match {
         case fml:Formula => Sequent(Nil, collection.immutable.IndexedSeq(), collection.immutable.IndexedSeq(fml))
         case _ => throw new Exception("Failed to parse model for proof " + proofId + " model " + modelId)
       }
@@ -807,7 +807,7 @@ object SQLite {
       KeYmaeraXParser.setAnnotationListener{case (program, formula) =>
         invariants = invariants.+((program, formula))
       }
-      KeYmaeraXProblemParser(model.keyFile)
+      KeYmaeraXProblemParser(model.keyFile)._1
       invariants
     }
 

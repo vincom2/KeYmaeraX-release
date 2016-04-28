@@ -82,7 +82,7 @@ class ModelplexTacticTests extends TacticTestSuite {
     import scala.collection._
 
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/simple.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("x"))
 
     def modelPlex: PositionTactic = chase(3, 3, (e:Expression) => e match {
@@ -106,7 +106,7 @@ class ModelplexTacticTests extends TacticTestSuite {
     import TactixLibrary.chase
     import TactixLibrary.proveBy
 
-    val model = KeYmaeraXProblemParser("ProgramVariables. R x. End. Problem. 0 <= x -> [{x:=2;}*](0 <= x) End.")
+    val model = KeYmaeraXProblemParser("ProgramVariables. R x. End. Problem. 0 <= x -> [{x:=2;}*](0 <= x) End.")._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("x"))
 
     def modelPlex: PositionTactic = chase(3, 3, (e:Expression) => e match {
@@ -133,7 +133,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "find correct controller monitor by updateCalculus implicationally" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/watertank/watertank.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("f"), Variable("l"), Variable("c"))
 
     val foResult = proveUncheckedBy(modelplexInput, ModelPlex.controllerMonitorByChase(1, 1::Nil))
@@ -184,7 +184,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "find correct controller monitor condition from model file" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/watertank/watertank.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("f"), Variable("l"), Variable("c"))
 
     val tactic = locateSucc(modelplexAxiomaticStyle(useOptOne=true)(controllerMonitorT))
@@ -284,7 +284,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "find correct controller monitor from model" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/fm11/llc.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model,
       Variable("xl"), Variable("vl"), Variable("al"), Variable("xf"), Variable("vf"), Variable("af"), Variable("t"))
 
@@ -302,7 +302,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "find correct controller monitor by updateCalculus implicationally" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/fm11/llc.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model,
       Variable("xl"), Variable("vl"), Variable("al"), Variable("xf"), Variable("vf"), Variable("af"), Variable("t"))
 
@@ -332,7 +332,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   ignore should "find correct controller monitor condition from model" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/icfem08/safetylemma.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("vdes"), Variable("SB"), Variable("v"),
       Variable("state"), Variable("do"), Variable("z"), Variable("t"), Variable("mo"), Variable("m"), Variable("d"),
       Variable("a"))
@@ -349,7 +349,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   ignore should "find correct controller monitor by updateCalculus implicationally" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/icfem08/safetylemma.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("vdes"), Variable("SB"), Variable("v"),
       Variable("state"), Variable("do"), Variable("z"), Variable("t"), Variable("mo"), Variable("m"), Variable("d"),
       Variable("a"))
@@ -370,7 +370,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   "RSS passive safety modelplex in place" should "find correct controller monitor by updateCalculus implicationally" in {
     val in = getClass.getResourceAsStream("examples/casestudies/robix/passivesafetyabs.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model,
       Variable("xo"), Variable("yo"), Variable("dxo"), Variable("dyo"), Variable("x"), Variable("y"), Variable("dx"),
       Variable("dy"), Variable("v"), Variable("w"), Variable("a"), Variable("r"), Variable("t"))
@@ -391,7 +391,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "find the correct controller monitor condition from the input model" in {
     val in = getClass.getResourceAsStream("examples/casestudies/robix/passivesafetyabs.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model,
       Variable("xo"), Variable("yo"), Variable("dxo"), Variable("dyo"), Variable("x"), Variable("y"), Variable("dx"),
       Variable("dy"), Variable("v"), Variable("w"), Variable("a"), Variable("r"), Variable("t"))
@@ -441,7 +441,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   "RSS passive orientation safety modelplex in place" should "extract the correct controller monitor by updateCalculus implicationally" in {
     val in = getClass.getResourceAsStream("examples/casestudies/robix/passiveorientationsafety.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("a"), Variable("r"),
       Variable("talpha"), Variable("odx"), Variable("ody"), Variable("ox"), Variable("oy"), Variable("dx"),
       Variable("dy"), Variable("w"), Variable("isVisible"), Variable("t"), Variable("v"), Variable("talpha"),
@@ -463,7 +463,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   ignore should "extract the correct controller monitor" in {
     val in = getClass.getResourceAsStream("examples/casestudies/robix/passiveorientationsafety.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("a"), Variable("r"),
       Variable("talpha"), Variable("odx"), Variable("ody"), Variable("ox"), Variable("oy"), Variable("dx"),
       Variable("dy"), Variable("w"), Variable("isVisible"), Variable("t"), Variable("v"), Variable("talpha"),
@@ -485,7 +485,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   "Hybrid quadcopter" should "extract the correct controller monitor" in {
     val in = getClass.getResourceAsStream("examples/casestudies/quadcopter/hybridquadrotor.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("href"), Variable("v"), Variable("h"))
 
     val tactic = locateSucc(modelplexAxiomaticStyle(useOptOne=true)(controllerMonitorT))
@@ -503,7 +503,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "extract the correct controller monitor by updateCalculus implicationally" in {
     val in = getClass.getResourceAsStream("examples/casestudies/quadcopter/hybridquadrotor.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("href"), Variable("v"), Variable("h"))
 
     val foResult = proveUncheckedBy(modelplexInput, ModelPlex.controllerMonitorByChase(1, 1::Nil))
@@ -538,7 +538,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "find correct controller monitor condition from input file" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/iccps12/vsl.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model,
       Variable("xsl"), Variable("vsl"), Variable("x1"), Variable("v1"), Variable("a1"), Variable("t"))
 
@@ -557,7 +557,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   it should "find correct controller monitor by updateCalculus implicationally" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/iccps12/vsl.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model,
       Variable("xsl"), Variable("vsl"), Variable("x1"), Variable("v1"), Variable("a1"), Variable("t"))
 
@@ -579,7 +579,7 @@ class ModelplexTacticTests extends TacticTestSuite {
 
   "Quadcopter modelplex in place" should "find correct controller monitor condition" in {
     val in = getClass.getResourceAsStream("examples/casestudies/modelplex/quadcopter/simplepid.key")
-    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)
+    val model = KeYmaeraXProblemParser(io.Source.fromInputStream(in).mkString)._1
     val modelplexInput = createMonitorSpecificationConjecture(model, Variable("h"), Variable("v"), Variable("kp"),
       Variable("kd"), Variable("href"))
 

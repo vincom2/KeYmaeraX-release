@@ -424,7 +424,7 @@ class DifferentialTests extends TacticTestBase {
                   |End.
                   |""".stripMargin
 
-    proveBy(KeYmaeraXProblemParser(input), implyR(1) & diffInd(qeTool, 'full)(1)) shouldBe 'proved
+    proveBy(KeYmaeraXProblemParser(input)._1, implyR(1) & diffInd(qeTool, 'full)(1)) shouldBe 'proved
   }
 
   "Dvariable" should "work when the Differential() occurs in a formula without []'s" in withMathematica { implicit qeTool =>

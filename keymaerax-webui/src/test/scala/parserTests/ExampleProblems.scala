@@ -30,7 +30,7 @@ class ExampleProblems extends FlatSpec with Matchers {
         |End.
       """.stripMargin
 
-    val result = KeYmaeraXProblemParser(theProblem)
+    val result = KeYmaeraXProblemParser(theProblem)._1
     result shouldBe KeYmaeraXParser("""  x > 0 ->
                                       |  [
                                       |   x := x + 1;

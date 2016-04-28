@@ -94,7 +94,7 @@ class Tutorial extends FlatSpec with Matchers with BeforeAndAfterEach {
     val qq = "\"\"\"\""
     val expectedProofFileContent =
       s"""Lemma "example1".
-          |  ${KeYmaeraXPrettyPrinter(KeYmaeraXProblemParser(inputModel))}
+          |  ${KeYmaeraXPrettyPrinter(KeYmaeraXProblemParser(inputModel)._1)}
           |End.
           |
           |Tool.
