@@ -58,10 +58,11 @@ case class ObjectSort(name : String) extends Sort { override def toString = name
   */
 sealed abstract class MeasureUnit
 /** General unit type, where the int is a unique identifier (icky, but hopefully enough for now) */
-case class UnitUnit(id: Int) extends MeasureUnit { override def toString = "UnitOfMeasure " + id.toString() }
+case class UnitUnit(id: String) extends MeasureUnit { override def toString = "UnitOfMeasure " + id }
 /** The unit of measure of any variable without an annotation in the ProgramVariables section. Matches any other unit. */
-object UnknownUnit extends MeasureUnit
-
+object AnyUnit extends MeasureUnit
+/** Dimensionless units; only matches other dimensionless things */
+object NoUnit extends MeasureUnit
 
 /**
  * Expressions of differential dynamic logic.
