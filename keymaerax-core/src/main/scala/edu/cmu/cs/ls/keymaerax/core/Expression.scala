@@ -59,6 +59,8 @@ case class ObjectSort(name : String) extends Sort { override def toString = name
 sealed abstract class MeasureUnit
 /** General unit type, where the int is a unique identifier (icky, but hopefully enough for now) */
 case class UnitUnit(id: String) extends MeasureUnit { override def toString = "UnitOfMeasure " + id }
+/** Unit type of products; products are simply stored as a "multiset" of the units being multiplied together */
+case class ProductUnit(units: Map[String, Int]) extends MeasureUnit { override def toString = "Units[" + units.foldLeft(""){ case (s, (u, e)) => s + "," + u + "**" + e.toString } }
 /** The unit of measure of any variable without an annotation in the ProgramVariables section. Matches any other unit. */
 object AnyUnit extends MeasureUnit
 /** Dimensionless units; only matches other dimensionless things */
