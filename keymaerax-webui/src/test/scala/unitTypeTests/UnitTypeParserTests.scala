@@ -2,7 +2,7 @@ package src.test.scala.unitTypeTests
 
 import edu.cmu.cs.ls.keymaerax.btactics.TacticTestBase
 import edu.cmu.cs.ls.keymaerax.core._
-import edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXProblemParser
+import edu.cmu.cs.ls.keymaerax.parser.{KeYmaeraXProblemParser, KeYmaeraXProblemParserResult}
 import edu.cmu.cs.ls.keymaerax.parser.StringConverter._
 /**
   * Created by vincenth on 27/04/16.
@@ -23,13 +23,14 @@ class UnitTypeParserTests extends TacticTestBase {
         | x>0
         |End.
       """.stripMargin
-    val (result, map : Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit)]) = KeYmaeraXProblemParser(input)
+    val (result, KeYmaeraXProblemParserResult(map, units)) = KeYmaeraXProblemParser(input)
+    result shouldBe Greater(Variable("x"), Number(0))
     result match {
       case Greater(l,r) => l.sort shouldBe Real
     }
 
-    map.get("m", None) match {
-      case Some(m) => m shouldBe (None, UnitOfMeasure, AnyUnit)
+    units.get("m") match {
+      case Some(m) => m shouldBe Map()
     }
 
     map.get("x", None) match {

@@ -5,22 +5,37 @@
 package edu.cmu.cs.ls.keymaerax.parser
 
 import edu.cmu.cs.ls.keymaerax.core._
+import edu.cmu.cs.ls.keymaerax.parser
 
 import scala.annotation.tailrec
 
+/** The return from a call to KeYmaeraXProblemParser
+  * @param variableMap A map containing a mapping from variable name/index pairs to variable sorts, where the sort is a triple:
+  *                        _1: (Optionally) the domain sort of a function
+  *                        _2: The sort of a ProgramVariable, or the codomain sort of a function.
+  *                        _3: The unit of measure of a ProgramVariable
+  * @param unitMap A map containing a mapping from unit names to a map containing further information about the unit, viz
+  *                  * units the unit named is "related to", in the sense that they will match on opposite sides of an = sign
+  *                    (this is stored as a MeasureUnit, but we expect everything here to be a UnitUnit or a ProductUnit)
+  *                    @todo I don't know how these `insist` things work, but could we use that here?
+  *                  * conversion factors corresponding to said unit
+  */
+case class KeYmaeraXProblemParserResult (variableMap : Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit)]
+                                        ,unitMap     : Map[String, (Map[MeasureUnit, Int])])
 /**
  * Parses .kyx files.
  * @todo check sorts
  * Created by nfulton on 6/12/15.
+ * Modified by vincenth on 4/26/16.
  */
 object KeYmaeraXProblemParser {
-  def apply(input : String): (Formula, Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit)]) =
+  def apply(input : String): (Formula, KeYmaeraXProblemParserResult) =
     try {
       firstNonASCIICharacter(input) match {
         case Some(pair) => throw ParseException(s"Input string contains non-ASCII character ${pair._2}", pair._1)
         case None => {
-          val (f, m) = parseProblem(KeYmaeraXLexer.inMode(input, ProblemFileMode()))
-          (m, f)
+          val (m, f) = parseProblem(KeYmaeraXLexer.inMode(input, ProblemFileMode()))
+          (f, m)
         }
       }
     }
@@ -48,9 +63,10 @@ object KeYmaeraXProblemParser {
     }
   }
 
-  protected def parseProblem(tokens: List[Token]) :  (Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit)], Formula) = {
+  protected def parseProblem(tokens: List[Token]) :  (KeYmaeraXProblemParserResult, Formula) = {
     val parser = KeYmaeraXParser
-    val (decls, remainingTokens) = KeYmaeraXDeclarationsParser(tokens)
+    // @todo modify the typeAnalysis to deal with the units too?
+    val (KeYmaeraXDeclarationsParserResult(decls, units), remainingTokens) = KeYmaeraXDeclarationsParser(tokens)
     checkInput(remainingTokens.nonEmpty, "Problem. block expected", UnknownLocation, "kyx problem input problem block")
     checkInput(remainingTokens.head.tok.equals(PROBLEM_BLOCK), "Problem. block expected", remainingTokens.head.loc, "kyx reading problem block")
 
@@ -78,9 +94,23 @@ object KeYmaeraXProblemParser {
     KeYmaeraXDeclarationsParser.typeAnalysis(decls, problem) //throws ParseExceptions.
 
     val declsWithoutStartToks = decls.mapValues(v => (v._1, v._2, v._3))
-    (declsWithoutStartToks, problem)
+    (KeYmaeraXProblemParserResult(declsWithoutStartToks, units), problem)
   }
 }
+
+/** The return from a call to KeYmaeraXDeclarationsParser
+  * @param variableMap A map containing a mapping from variable name/index pairs to variable sorts, where the sort is a triple:
+  *                        _1: (Optionally) the domain sort of a function
+  *                        _2: The sort of a ProgramVariable, or the codomain sort of a function.
+  *                        _3: The unit of measure of a ProgramVariable
+  *                        _4: The token that starts the declaration.
+  * @param unitMap A map containing a mapping from unit names to a map containing further information about the unit, viz
+  *                  * units the unit named is "related to", in the sense that they will match on opposite sides of an = sign
+  *                    (this is stored as a MeasureUnit, but we expect everything here to be a UnitUnit or a ProductUnit)
+  *                  * conversion factors corresponding to said unit
+  */
+case class KeYmaeraXDeclarationsParserResult (variableMap : Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit, Token)]
+                                             ,unitMap     : Map[String, (Map[MeasureUnit, Int])])
 
 /**
  * Parses the declarations in .kyx and .alp files.
@@ -93,36 +123,36 @@ object KeYmaeraXDeclarationsParser {
    *          _1: A mapping from variable name/index pairs to variable sorts, where the sort is a triple:
    *              _1: (Optionally) the domain sort of a function
    *              _2: The sort of a ProgramVariable, or the codomain sort of a function.
-    *             _3: The unit of measure of a ProgramVariable @todo implement, and then fix everything this change breaks
-    *             _4: The token that starts the declaration.
+   *              _3: The unit of measure of a ProgramVariable @todo split this stuff off into a separate map (also important for namespacing units and variables)
+   *              _4: The token that starts the declaration.
    *          _2: The list of remaining tokens.
    */
-  def apply(tokens : List[Token]) : (Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit, Token)], List[Token]) =
+  def apply(tokens : List[Token]) : (KeYmaeraXDeclarationsParserResult, List[Token]) =
     parseDeclarations(tokens)
 
-  def parseDeclarations(tokens: List[Token]): (Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit, Token)], List[Token]) = {
-    //@todo wow this is so hacky! gross
+  def parseDeclarations(tokens: List[Token]): (KeYmaeraXDeclarationsParserResult, List[Token]) = {
     if(tokens.head.tok.equals(PROGRAM_UNITS_BLOCK)) {
       val (programUnits, remainder1) = processProgramUnits(tokens)
       val (programVariables, remainder2) = processProgramVariables(remainder1)
       val (functions, finalRemainder) = processFunctionSymbols(remainder2)
-      (programUnits ++ programVariables ++ functions, finalRemainder)
+      (KeYmaeraXDeclarationsParserResult(programVariables ++ functions, programUnits), finalRemainder)
     }
     else if(tokens.head.tok.equals(PROGRAM_VARIABLES_BLOCK)) {
       val (programVariables, remainder) = processProgramVariables(tokens)
       val (functions, finalRemainder) = processFunctionSymbols(remainder)
-      (programVariables ++ functions, finalRemainder)
+      (KeYmaeraXDeclarationsParserResult(programVariables ++ functions, Map()), finalRemainder)
     }
     else if(tokens.head.tok.equals(FUNCTIONS_BLOCK)) {
       val (functions, remainder) = processFunctionSymbols(tokens)
       val (programVariables, finalRemainder) = processProgramVariables(remainder)
-      (programVariables ++ functions, finalRemainder)
+      (KeYmaeraXDeclarationsParserResult(programVariables ++ functions, Map()), finalRemainder)
     }
     else if(tokens.head.tok.equals(VARIABLES_BLOCK)) {
-      processVariables(tokens)
+      val (vars, remainder) = processVariables(tokens)
+      (KeYmaeraXDeclarationsParserResult(vars, Map()), remainder)
     }
     else {
-      (Map(), tokens)
+      (KeYmaeraXDeclarationsParserResult(Map(), Map()), tokens)
     }
   }
 
@@ -171,11 +201,14 @@ object KeYmaeraXDeclarationsParser {
    *          _1: The list of Named Symbols.
    *          _2: The remainder of the file.
    */
-  def processProgramUnits(tokens: List[Token]) : (Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit, Token)], List[Token]) = {
+  def processProgramUnits(tokens: List[Token]) : (Map[String, Map[MeasureUnit, Int]], List[Token]) = {
     if(tokens.head.tok.equals(PROGRAM_UNITS_BLOCK)) {
       val (progUnitsSection, remainder) = tokens.span(x => !x.tok.equals(END_BLOCK))
       val progUnitsTokens = progUnitsSection.tail
-      (processDeclarations(progUnitsTokens, Map()), remainder.tail)
+      // dirty hack to avoid having to rewrite processDeclarations
+      val tempMap = processDeclarations(progUnitsTokens, Map())
+      val progUnitsMap = tempMap.map({ case ((u, _), (_, UnitOfMeasure, AnyUnit, _)) => (u, Map() : Map[MeasureUnit, Int]) })
+      (progUnitsMap, remainder.tail)
     }
     else (Map(), tokens)
   }
