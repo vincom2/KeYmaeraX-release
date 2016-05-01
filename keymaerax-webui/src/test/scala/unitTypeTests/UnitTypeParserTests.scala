@@ -4,6 +4,7 @@ import edu.cmu.cs.ls.keymaerax.btactics.TacticTestBase
 import edu.cmu.cs.ls.keymaerax.core._
 import edu.cmu.cs.ls.keymaerax.parser.{KeYmaeraXProblemParser, KeYmaeraXProblemParserResult}
 import edu.cmu.cs.ls.keymaerax.parser.StringConverter._
+
 /**
   * Created by vincenth on 27/04/16.
   */
