@@ -23,6 +23,10 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
     }
   }
 
+  def getUnitOfVariable(x : Variable) : MeasureUnit = {
+    varMap((x.name, x.index))._3
+  }
+
   def getUnitOfTerm(tm : Term) : Option[MeasureUnit] = {
     tm match {
       case Variable(n, i, _) => varMap.get((n, i)) match {
@@ -74,6 +78,7 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       }
       case Differential(c) => getUnitOfTerm(c) // @todo this is not right, it should be divided by time
       case Pair(l, r) => None // oh man what do we do here? can you write keymaerax formulas on pairs?
+      case _ => None // wat
     }
   }
 
@@ -210,10 +215,39 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       }
       case Forall(_, _) => None /* @todo jeez you can also bind variables with units here... */
       case Exists(_, _) => None /* @todo see above comment */
-      case Box(p, f) => unitAnalysis(f) /* @todo you want to do "program analysis" of p too */
-      case Diamond(p, f) => unitAnalysis(f) /* @todo see above comment */
+      case Box(p, f) => programAnalysis(p) match {
+        case None => unitAnalysis(f)
+        case Some(error) => Some(error)
+      }
+      case Diamond(p, f) => programAnalysis(p) match {
+        case None => unitAnalysis(f)
+        case Some(error) => Some(error)
+      }
       case DifferentialFormula(f) => unitAnalysis(f) // @todo this is wrong? everything inside should be differentiated
+    }
+  }
 
+  def programAnalysis(p : Program) : Option[String] = {
+    p match {
+      case Assign(x, e) => getUnitOfTerm(e) match {
+        case None => Some("term " + e.toString + " did not have a proper unit!")
+        case Some(eu) => if(unitsEqual(getUnitOfVariable(x), eu)) None
+          else Some(x.toString + " had unit " + getUnitOfVariable(x).toString + " but " + e.toString + " had unit " + eu.toString)
+      }
+      case DiffAssign(_, _) => None // @todo this is going to be wrong anyway because can't divide by s yet
+      case AssignAny(_) => None // random assignment is basically AnyUnit
+      case Test(f) => unitAnalysis(f)
+      case Choice(l, r) => programAnalysis(l) match {
+        case Some(error) => Some(error)
+        case None => programAnalysis(r)
+      }
+      case Compose(l, r) => programAnalysis(l) match {
+        case Some(error) => Some(error)
+        case None => programAnalysis(r)
+      }
+      case Loop(pr) => programAnalysis(pr)
+      case Dual(pr) => programAnalysis(pr)
+      case _ => Some("wat")
     }
   }
 }

@@ -173,4 +173,46 @@ class UnitTypeCheckerTests extends TacticTestBase {
     }
   }
 
+  it should "pass a program with correct units" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        | U n.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : n.
+        | R m : m.
+        | R n : n.
+        |End.
+        |Problem.
+        | <x:=*; y:=*; m:=*; n:=*; ?(x*y = n*m);>(x>=m)
+        |End.
+      """.stripMargin
+    val (_, _) = KeYmaeraXProblemParser(input)
+  }
+
+  it should "fail a program with incorrect units" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        | U n.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : n.
+        | R m : m.
+        | R n : n.
+        |End.
+        |Problem.
+        | [x:=*; y:=*; m:=*; n:=*; ?(x*m = n*y);](x>=m)
+        |End.
+      """.stripMargin
+    intercept[ParseException] {
+      val (_, _) = KeYmaeraXProblemParser(input)
+    }
+  }
+
 }
