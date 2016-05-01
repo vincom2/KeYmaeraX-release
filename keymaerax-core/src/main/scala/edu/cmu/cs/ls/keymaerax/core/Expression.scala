@@ -4,8 +4,7 @@
 */
 /**
  * Differential Dynamic Logic expression data structures.
-  *
-  * @author Andre Platzer
+ * @author Andre Platzer
  * @see Andre Platzer. [[http://www.cs.cmu.edu/~aplatzer/pub/usubst.pdf A uniform substitution calculus for differential dynamic logic]].  In Amy P. Felty and Aart Middeldorp, editors, International Conference on Automated Deduction, CADE'15, Berlin, Germany, Proceedings, LNCS. Springer, 2015. [[http://arxiv.org/pdf/1503.01981.pdf arXiv 1503.01981]]
  * @see Andre Platzer. [[http://dx.doi.org/10.1145/2817824 Differential game logic]]. ACM Trans. Comput. Log. 17(1), 2015. [[http://arxiv.org/pdf/1408.1980 arXiv 1408.1980]]
  * @see Andre Platzer. [[http://dx.doi.org/10.1109/LICS.2012.64 The complete proof theory of hybrid systems]]. ACM/IEEE Symposium on Logic in Computer Science, LICS 2012, June 25–28, 2012, Dubrovnik, Croatia, pages 541-550. IEEE 2012
@@ -87,8 +86,7 @@ object NoUnit extends MeasureUnit {
  * 3. hybrid programs are of type [[edu.cmu.cs.ls.keymaerax.core.Program]] of kind [[edu.cmu.cs.ls.keymaerax.core.ProgramKind]]
  *
  * See [[http://arxiv.org/pdf/1503.01981.pdf Section 2.1]]
-  *
-  * @author Andre Platzer
+ * @author Andre Platzer
  * @see Andre Platzer. [[http://arxiv.org/pdf/1503.01981.pdf A uniform substitution calculus for differential dynamic logic.  arXiv 1503.01981]], 2015.
  * @see [[edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXParser#apply]]
  */
@@ -128,8 +126,7 @@ sealed trait ApplicationOf extends Expression {
 
 /**
  * A named symbol such as a variable or function symbol or predicate symbol.
-  *
-  * @note User-level symbols should not use underscores, which are reserved for the core.
+ * @note User-level symbols should not use underscores, which are reserved for the core.
  */
 sealed trait NamedSymbol extends Expression with Ordered[NamedSymbol] {
   require(!name.isEmpty && !name.substring(0, name.length-1).contains("_"),
@@ -174,7 +171,6 @@ sealed trait NamedSymbol extends Expression with Ordered[NamedSymbol] {
 
 /**
  * Terms of differential dynamic logic.
-  *
   * @author Andre Platzer
   * @see [[edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXParser#termParser]]
  */
@@ -252,7 +248,6 @@ sealed trait CompositeTerm extends Term with Composite
 /** Unary Composite Terms, i.e. terms composed of one real term. */
 sealed trait UnaryCompositeTerm extends UnaryComposite with CompositeTerm {
   /** Create a term of this constructor but with the given argument as child instead. (copy)
-    *
     * @example {{{
     *         Neg(Number(77)).reapply(Number(99)) == Neg(Number(99))
     *         Neg(Variable("x")).reapply(Plus(Number(42),Number(69))) == Neg(Plus(Number(42),Number(69)))
@@ -270,7 +265,6 @@ private[core] sealed trait RUnaryCompositeTerm extends UnaryCompositeTerm with R
 /** Binary Composite Terms, i.e. terms composed of two terms. */
 sealed trait BinaryCompositeTerm extends BinaryComposite with CompositeTerm {
   /** Create a term of this constructor but with the give left and right arguments instead. (copy)
-    *
     * @example {{{
     *         Times(Number(7), Variable("v")).reapply(Variable("a"), Number(99)) == Times(Variable("a"), Number(99))
     *         }}}
@@ -317,8 +311,7 @@ case class Pair(left: Term, right: Term) extends BinaryCompositeTerm {
 
 /**
  * Formulas of differential dynamic logic.
-  *
-  * @author Andre Platzer
+ * @author Andre Platzer
  * @see [[edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXParser#formulaParser]]
  */
 sealed trait Formula extends Expression {
@@ -332,7 +325,6 @@ sealed trait AtomicFormula extends Formula with Atomic
 /** Atomic comparison formula composed of two terms. */
 sealed trait ComparisonFormula extends AtomicFormula with BinaryComposite {
   /** Create a formula of this constructor but with the give left and right arguments instead. (copy)
-    *
     * @example {{{
     *         GreaterEqual(Number(7), Variable("v")).reapply(Variable("a"), Number(99)) == GreaterEqual(Variable("a"), Number(99))
     *         }}}
@@ -397,7 +389,6 @@ sealed trait CompositeFormula extends Formula with Composite
 /** Unary Composite Formulas, i.e. formulas composed of one formula. */
 sealed trait UnaryCompositeFormula extends UnaryComposite with CompositeFormula {
   /** Create a formula of this constructor but with the given argument as child instead. (copy)
-    *
     * @example {{{
     *         Not(GreaterEqual(Variable("x"),Number(0))).reapply(UnEqual(Number(7),Number(9))) == Not(UnEqual(Number(7),Number(9)))
     *         Not(True).reapply(False) == Not(False)
@@ -410,7 +401,6 @@ sealed trait UnaryCompositeFormula extends UnaryComposite with CompositeFormula 
 /** Binary Composite Formulas, i.e. formulas composed of two formulas. */
 sealed trait BinaryCompositeFormula extends BinaryComposite with CompositeFormula {
   /** Create a formula of this constructor but with the give left and right arguments instead. (copy)
-    *
     * @example {{{
     *         Or(GreaterEqual(Variable("x"),Number(0)), False).reapply(True, UnEqual(Number(7),Number(9))) == Or(True, UnEqual(Number(7),Number(9)))
     *         }}}
@@ -438,7 +428,6 @@ sealed trait Quantified extends /*Unary?*/CompositeFormula {
 //  insist(vars.distinct.size == vars.size, "no duplicates within one quantifier block")
 //  insist(vars.forall(x => x.sort == vars.head.sort), "all vars have the same sort")
   /** Create a formula of this constructor but with the given variable list and child as argument instead. (copy)
-    *
     * @example {{{
     *         Forall(immutable.Seq(Variable("x")), PredOf(Func("p",None,Real,Bool),Variable("x")).reapply(
     *                immutable.Seq(Variable("y")), PredOf(Func("q",None,Real,Bool),Variable("y")))
@@ -477,8 +466,7 @@ case class DifferentialFormula(child: Formula) extends UnaryCompositeFormula { d
 
 /**
  * Hybrid programs of differential dynamic logic.
-  *
-  * @author Andre Platzer
+ * @author Andre Platzer
  * @see [[edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXParser#programParser]]
  */
 sealed trait Program extends Expression {
@@ -513,7 +501,6 @@ sealed trait CompositeProgram extends Program with Composite
 /** Unary Composite Programs, i.e. programs composed of one program. */
 sealed trait UnaryCompositeProgram extends UnaryComposite with CompositeProgram {
   /** Create a program of this constructor but with the given argument as child instead. (copy)
-    *
     * @example {{{
     *         Loop(ProgramConst("alpha")).reapply(Assign(Variable("x"),Number(42))) == Loop(Assign(Variable("x"),Number(42)))
     *         }}}
@@ -525,7 +512,6 @@ sealed trait UnaryCompositeProgram extends UnaryComposite with CompositeProgram 
 /** Binary Composite Programs, i.e. programs composed of two programs. */
 sealed trait BinaryCompositeProgram extends BinaryComposite with CompositeProgram {
   /** Create a program of this constructor but with the give left and right arguments instead. (copy)
-    *
     * @example {{{
     *         Choice(ProgramConst("alpha"), ProgramConst("beta")).reapply(ProgramConst("gamma"), ProgramConst("delta")) == Choice(ProgramConst("gamma"), ProgramConst("delta"))
     *         }}}
@@ -549,8 +535,7 @@ case class Dual(child: Program) extends UnaryCompositeProgram { def reapply = co
 
 /**
  * Differential programs
-  *
-  * @author Andre Platzer
+ * @author Andre Platzer
  * @see [[edu.cmu.cs.ls.keymaerax.parser.KeYmaeraXParser#differentialProgramParser]]
  */
 sealed trait DifferentialProgram extends Program {
@@ -581,8 +566,7 @@ case class AtomicODE(xp: DifferentialSymbol, e: Term) extends AtomicDifferential
  * left,right parallel product of differential programs.
  * This data structure automatically reassociates to list form
  * DifferentialProduct(AtomicDifferentialProgram, DifferentialProduct(AtomicDifferentialProgram, ....))
-  *
-  * @note This is a case class except for an override of the apply function.
+ * @note This is a case class except for an override of the apply function.
  * @note Private constructor so only [[DifferentialProduct.apply]] can ever create this, which will re-associate et al.
  */
 final class DifferentialProduct private(val left: DifferentialProgram, val right: DifferentialProgram)
@@ -600,8 +584,7 @@ object DifferentialProduct {
   /**
    * Construct an ODEProduct in reassociated normal form, i.e. as a list such that left will never be an ODEProduct in
    * the data structures.
-    *
-    * @note Completeness: reassociate needed in DifferentialProduct data structures for
+   * @note Completeness: reassociate needed in DifferentialProduct data structures for
    *       axiom "DE differential effect (system)" so as not to get stuck after it.
    */
   def apply(left: DifferentialProgram, right: DifferentialProgram): DifferentialProduct = {
