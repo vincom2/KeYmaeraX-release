@@ -8,6 +8,21 @@ import edu.cmu.cs.ls.keymaerax.core._
 case class UnitChecker(r : KeYmaeraXProblemParserResult) {
   val (varMap, unitMap) = (r.variableMap, r.unitMap)
 
+  def unitsEqual(u1 : MeasureUnit, u2 : MeasureUnit) : Boolean = {
+    (u1, u2) match {
+      case (AnyUnit, _) => true
+      case (_, AnyUnit) => true
+      case (NoUnit, NoUnit) => true
+      case (UnitUnit(s1), UnitUnit(s2)) => s1 == s2
+      case (UnitUnit(s), ProductUnit(m)) =>
+        m.foldLeft(true)({ case (acc, (s1, e)) => !((s1 != s && e != 0) || (s1 == s && e != 1)) })
+      case (ProductUnit(m), UnitUnit(s)) =>
+        m.foldLeft(true)({ case (acc, (s1, e)) => !((s1 != s && e != 0) || (s1 == s && e != 1)) })
+      case (ProductUnit(m1), ProductUnit(m2)) => m1 == m2
+      case _ => false
+    }
+  }
+
   def getUnitOfTerm(tm : Term) : Option[MeasureUnit] = {
     tm match {
       case Variable(n, i, _) => varMap.get((n, i)) match {
@@ -24,16 +39,22 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       // a bunch of internal (I think) cases omitted
       case Neg(c) => getUnitOfTerm(c)
       case Plus(l, r) => {
-        val lu = getUnitOfTerm(l)
-        if(lu == getUnitOfTerm(r)) lu else None
+        (getUnitOfTerm(l), getUnitOfTerm(r)) match {
+          case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) Some(lu) else None
+          case _ => None
+        }
       }
       case Minus(l, r) => {
-        val lu = getUnitOfTerm(l)
-        if(lu == getUnitOfTerm(r)) lu else None
+        (getUnitOfTerm(l), getUnitOfTerm(r)) match {
+          case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) Some(lu) else None
+          case _ => None
+        }
       }
       case Times(l, r) => {
         (getUnitOfTerm(l), getUnitOfTerm(r)) match {
-          case (Some(u1), Some(u2)) => Some(multiplyUnits(u1, u2))
+          case (Some(u1), Some(u2)) => {
+            Some(multiplyUnits(u1, u2))
+          }
           case _ => None
         }
       }
@@ -120,8 +141,6 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
   }
 
   /* unit-checking formulas after parsing
-   * @todo this might belong in a separate module? I put it here because semantic analysis is in this module already,
-   * and type analysis is in KeYmaeraXDeclarationsParser
    * @todo this probably needs more parameters, like formula variables, passed in,
    * because we need to take set differences when within the scope of a quantifier
    * or hey, we can just call fmlVars
@@ -133,37 +152,39 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       case True => Some("wat")
       case False => Some("wat")
       case Equal(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
-        case (Some(lu), Some(ru)) => if(lu == ru) None else Some("unit error in = expression")
+        case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else Some("unit error in = expression")
         case (Some(_), None) => Some("unit error in term on RHS of =")
         case (None, Some(_)) => Some("unit error in term on LHS of =")
         case _ => Some("unit error on both sides of =")
       }
       case NotEqual(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
-        case (Some(lu), Some(ru)) => if(lu == ru) None else Some("unit error in != expression")
+        case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else Some("unit error in != expression")
         case (Some(_), None) => Some("unit error in term on RHS of !=")
         case (None, Some(_)) => Some("unit error in term on LHS of !=")
         case _ => Some("unit error on both sides of !=")
       }
       case GreaterEqual(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
-        case (Some(lu), Some(ru)) => if(lu == ru) None else Some("unit error in >= expression")
+        case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else Some("unit error in >= expression")
         case (Some(_), None) => Some("unit error in term on RHS of >=")
         case (None, Some(_)) => Some("unit error in term on LHS of >=")
         case _ => Some("unit error on both sides of >=")
       }
       case Greater(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
-        case (Some(lu), Some(ru)) => if(lu == ru) None else Some("unit error in > expression")
+        case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else Some("unit error in > expression")
         case (Some(_), None) => Some("unit error in term on RHS of >")
         case (None, Some(_)) => Some("unit error in term on LHS of >")
         case _ => Some("unit error on both sides of >")
       }
       case LessEqual(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
-        case (Some(lu), Some(ru)) => if(lu == ru) None else Some("unit error in <= expression")
+        case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else {
+          Some("unit error in <= expression\nLHS has unit " + lu.toString + "\nRHS has unit " + ru.toString)
+        }
         case (Some(_), None) => Some("unit error in term on RHS of <=")
         case (None, Some(_)) => Some("unit error in term on LHS of <=")
         case _ => Some("unit error on both sides of <=")
       }
       case Less(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
-        case (Some(lu), Some(ru)) => if(lu == ru) None else Some("unit error in < expression")
+        case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else Some("unit error in < expression")
         case (Some(_), None) => Some("unit error in term on RHS of <")
         case (None, Some(_)) => Some("unit error in term on LHS of <")
         case _ => Some("unit error on both sides of <")
