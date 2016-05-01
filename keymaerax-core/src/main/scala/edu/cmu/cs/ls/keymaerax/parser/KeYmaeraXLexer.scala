@@ -399,11 +399,6 @@ object KeYmaeraXLexer extends ((String) => List[Token]) {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(PERIOD, loc)
         case _ => throw new Exception("Periods should only occur when processing files.")
       }*/
-      // I'm not sure why the PERIOD case doesn't check the file mode? so I'm just going to check for COLON
-      case COLON.startPattern(_*) => mode match {
-        case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(COLON, loc)
-        case _ => throw new Exception("Unit annotation should only occur when processing files.")
-      }
       case FUNCTIONS_BLOCK.startPattern(_*) => mode match {
         case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(FUNCTIONS_BLOCK, loc)
         case _ => throw new Exception("Functions. should only occur when processing files.")
@@ -524,6 +519,11 @@ object KeYmaeraXLexer extends ((String) => List[Token]) {
 
       case ASSIGNANY.startPattern(_*) => consumeTerminalLength(ASSIGNANY, loc)
       case ASSIGN.startPattern(_*) => consumeTerminalLength(ASSIGN, loc)
+      // this has to come after the assignments
+      case COLON.startPattern(_*) => mode match {
+        case AxiomFileMode() | ProblemFileMode() | LemmaFileMode() => consumeTerminalLength(COLON, loc)
+        case _ => throw new Exception("Unit annotation should only occur when processing files.")
+      }
       case TEST.startPattern(_*) => consumeTerminalLength(TEST, loc)
       case SEMI.startPattern(_*) => consumeTerminalLength(SEMI, loc)
 
