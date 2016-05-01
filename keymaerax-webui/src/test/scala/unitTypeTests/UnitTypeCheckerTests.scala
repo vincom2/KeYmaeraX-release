@@ -215,4 +215,117 @@ class UnitTypeCheckerTests extends TacticTestBase {
     }
   }
 
+  it should "allow differential assignment of a quantity with correct units to a" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : m.
+        | R t : s.
+        |End.
+        |Problem.
+        | [y:=*; t := 1; x' := y/t;]x=x
+        |End.
+      """.stripMargin
+    val (_, _) = KeYmaeraXProblemParser(input)
+  }
+
+  it should "prohibit differential assignment with incorrect units" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : m.
+        |End.
+        |Problem.
+        | <x:=*; y:=*; x' := y;>x=x
+        |End.
+      """.stripMargin
+    intercept[ParseException] {
+      val (_, _) = KeYmaeraXProblemParser(input)
+    }
+  }
+
+  it should "allow a differential equation with correct units without evolution domain constraint" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : m.
+        | R t : s.
+        |End.
+        |Problem.
+        | [{ x' = y/t }]false
+        |End.
+      """.stripMargin
+    val (_, _) = KeYmaeraXProblemParser(input)
+  }
+
+  it should "allow a differential equation with evolution domain constraint with correct units" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : m.
+        | R t : s.
+        |End.
+        |Problem.
+        | [{ x' = y/t & t<1 }]false
+        |End.
+      """.stripMargin
+    val (_, _) = KeYmaeraXProblemParser(input)
+  }
+
+  it should "prohibit a differential equation with (evolution domain constraint with incorrect units)" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : m.
+        | R t : s.
+        |End.
+        |Problem.
+        | [{ x' = y/t & t<y }]false
+        |End.
+      """.stripMargin
+    intercept[ParseException] {
+      val (_, _) = KeYmaeraXProblemParser(input)
+    }
+  }
+
+  it should "prohibit a differential equation with incorrect units without evolution domain constraint" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R y : m.
+        | R t : s.
+        |End.
+        |Problem.
+        | [{ x' = y }]false
+        |End.
+      """.stripMargin
+    intercept[ParseException] {
+      val (_, _) = KeYmaeraXProblemParser(input)
+    }
+  }
+
 }
