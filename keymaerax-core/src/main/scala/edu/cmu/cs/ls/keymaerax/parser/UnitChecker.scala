@@ -70,6 +70,7 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       }
       // I'm making the assumption that r is always a Number : Term here, and also that the Number can be truncated to an Int
       // the comment at Expression.scala:164 makes this seem ok to do. Hopefully that's right!
+      // @todo upon further consideration, this assumption is bad and wrong
       case Power(l, r) => {
         getUnitOfTerm(l) match {
           case Some(u) => exponentiateUnit(u, r)
@@ -85,7 +86,7 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
   def exponentiateUnit(u : MeasureUnit, exp : Term) : Option[MeasureUnit] = {
     exp match {
       case Number(n) => u match {
-        // XXX intValue???
+        // XXX intValue??? probably wrong, see above
         case UnitUnit(s) => Some(ProductUnit(Map().withDefaultValue(0) + (s -> n.intValue())))
         case ProductUnit(m) => Some(ProductUnit(m.mapValues(e => e * n.intValue())))
         case AnyUnit => Some(AnyUnit) // really?
@@ -154,8 +155,8 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
    */
   def unitAnalysis(e : Formula) : Option[String] = {
     e match {
-      case True => Some("wat")
-      case False => Some("wat")
+      case True => None // always fine, right???
+      case False => None
       case Equal(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
         case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else Some("unit error in = expression")
         case (Some(_), None) => Some("unit error in term on RHS of =")
@@ -194,8 +195,8 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
         case (None, Some(_)) => Some("unit error in term on LHS of <")
         case _ => Some("unit error on both sides of <")
       }
-      case PredOf(_, _) => Some("wat")
-      case PredicationalOf(_, _) => Some("wat")
+      case PredOf(_, _) => Some("PredOf???")
+      case PredicationalOf(_, _) => Some("PredicationalOf???")
       case Not(f) => unitAnalysis(f)
       case And(l, r) => unitAnalysis(l) match {
         case None => unitAnalysis(r)
