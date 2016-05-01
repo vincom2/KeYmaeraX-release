@@ -178,6 +178,10 @@ private[core] sealed trait RTerm extends Term {
 }
 
 /** Variable called name with an index of a fixed sort */
+/* @todo a better thing to do would probably be to add a unit field to a variable,
+ * but since that would necessitate many changes to the entire codebase,
+ * we'll avoid it for now
+ */
 sealed case class Variable(name: String, index: Option[Int] = None, sort: Sort = Real)
   extends NamedSymbol with AtomicTerm
 
