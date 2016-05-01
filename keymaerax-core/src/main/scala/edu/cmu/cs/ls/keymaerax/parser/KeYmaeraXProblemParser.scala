@@ -5,7 +5,6 @@
 package edu.cmu.cs.ls.keymaerax.parser
 
 import edu.cmu.cs.ls.keymaerax.core._
-import edu.cmu.cs.ls.keymaerax.parser
 
 import scala.annotation.tailrec
 
@@ -94,7 +93,13 @@ object KeYmaeraXProblemParser {
     KeYmaeraXDeclarationsParser.typeAnalysis(decls, problem) //throws ParseExceptions.
 
     val declsWithoutStartToks = decls.mapValues(v => (v._1, v._2, v._3))
-    (KeYmaeraXProblemParserResult(declsWithoutStartToks, units), problem)
+    val result = KeYmaeraXProblemParserResult(declsWithoutStartToks, units)
+    val checker = UnitChecker(result)
+    checker.unitAnalysis(problem) match {
+      case None =>
+      case Some(error) => throw ParseException("Unit analysis error\n" + error, problem)
+    }
+    (result, problem)
   }
 }
 
