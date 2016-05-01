@@ -200,24 +200,34 @@ object KeYmaeraXDeclarationsParser {
 
 
   /**
-   *
-   * @param tokens Tokens in the parsed file.
-   * @return A pair:
-   *          _1: The list of Named Symbols.
-   *          _2: The remainder of the file.
-   */
+    *
+    * @param tokens Tokens in the parsed file.
+    * @return A pair:
+    *           _1: A map containing declared units
+    *           _2: The remainder of the file
+    * @note The unit "s" (seconds) is implicitly always there, even if the user doesn't declare it
+    * @todo Should we now be concerned about the `t` variable implicitly introduced by KeYmaera X?
+    */
   def processProgramUnits(tokens: List[Token]) : (Map[String, Map[MeasureUnit, Int]], List[Token]) = {
+    val initial = Map() + ("s" -> Map())
     if(tokens.head.tok.equals(PROGRAM_UNITS_BLOCK)) {
       val (progUnitsSection, remainder) = tokens.span(x => !x.tok.equals(END_BLOCK))
       val progUnitsTokens = progUnitsSection.tail
       // dirty hack to avoid having to rewrite processDeclarations
       val tempMap = processDeclarations(progUnitsTokens, Map())
       val progUnitsMap = tempMap.map({ case ((u, _), (_, UnitOfMeasure, AnyUnit, _)) => (u, Map() : Map[MeasureUnit, Int]) })
-      (progUnitsMap, remainder.tail)
+      (progUnitsMap + ("s" -> Map()), remainder.tail)
     }
-    else (Map(), tokens)
+    else (Map() + ("s" -> Map()), tokens)
   }
 
+  /**
+    *
+    * @param tokens Tokens in the parsed file.
+    * @return A pair:
+    *          _1: The list of Named Symbols.
+    *          _2: The remainder of the file.
+    */
   def processProgramVariables(tokens : List[Token]): (Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit, Token)], List[Token]) = {
     if(tokens.head.tok.equals(PROGRAM_VARIABLES_BLOCK)) {
       val(progVarsSection, remainder) = tokens.span(x => !x.tok.equals(END_BLOCK))

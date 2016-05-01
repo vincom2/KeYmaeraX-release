@@ -77,7 +77,10 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
           case None => None
         }
       }
-      case Differential(c) => getUnitOfTerm(c) // @todo this is not right, it should be divided by time
+      case Differential(c) => getUnitOfTerm(c) match {
+        case None => None
+        case Some(u) => Some(divideUnits(u, UnitUnit("s")))
+      }
       case Pair(l, r) => None // oh man what do we do here? can you write keymaerax formulas on pairs?
       case _ => None // wat
     }
@@ -224,7 +227,7 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
         case None => unitAnalysis(f)
         case Some(error) => Some(error)
       }
-      case DifferentialFormula(f) => unitAnalysis(f) // @todo this is wrong? everything inside should be differentiated
+      case DifferentialFormula(f) => unitAnalysis(f) // I think this is correct?
     }
   }
 
@@ -235,7 +238,16 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
         case Some(eu) => if(unitsEqual(getUnitOfVariable(x), eu)) None
           else Some(x.toString + " had unit " + getUnitOfVariable(x).toString + " but " + e.toString + " had unit " + eu.toString)
       }
-      case DiffAssign(_, _) => None // @todo this is going to be wrong anyway because can't divide by s yet
+      case DiffAssign(DifferentialSymbol(x), e) => {
+        getUnitOfTerm(e) match {
+          case None => Some("term " + e.toString + " did not have a proper unit!")
+          case Some(eu) => {
+            val xu = divideUnits(getUnitOfVariable(x), UnitUnit("s"))
+            if(unitsEqual(eu, xu)) None
+            else Some(DifferentialSymbol(x).toString + " had unit " + xu.toString + " but " + e.toString + " had unit " + eu.toString)
+          }
+        }
+      }
       case AssignAny(_) => None // random assignment is basically AnyUnit
       case Test(f) => unitAnalysis(f)
       case Choice(l, r) => programAnalysis(l) match {
@@ -248,6 +260,22 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       }
       case Loop(pr) => programAnalysis(pr)
       case Dual(pr) => programAnalysis(pr)
+      // Differential programs
+      case ODESystem(ode, constraint) => programAnalysis(ode) match {
+        case Some(error) => Some(error)
+        case None => unitAnalysis(constraint)
+      }
+      case AtomicODE(DifferentialSymbol(x), e) => {
+        getUnitOfTerm(e) match {
+          case None => Some("term " + e.toString + " did not have a proper unit!")
+          case Some(eu) => {
+            val xu = divideUnits(getUnitOfVariable(x), UnitUnit("s"))
+            if(unitsEqual(eu, xu)) None
+            else Some(DifferentialSymbol(x).toString + " had unit " + xu.toString + " but " + e.toString + " had unit " + eu.toString)
+          }
+        }
+      }
+      case DifferentialProduct(l, r) => None // @todo wtf is this???
       case _ => Some("wat")
     }
   }
