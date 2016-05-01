@@ -328,4 +328,21 @@ class UnitTypeCheckerTests extends TacticTestBase {
     }
   }
 
+  it should "allow a differential equation with a velocity variable" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m.
+        | R v : m/s.
+        |End.
+        |Problem.
+        | [{ x' = v }]x=x
+        |End.
+      """.stripMargin
+    val (_, _) = KeYmaeraXProblemParser(input)
+  }
+
 }

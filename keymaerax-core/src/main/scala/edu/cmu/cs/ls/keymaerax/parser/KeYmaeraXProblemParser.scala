@@ -304,16 +304,45 @@ object KeYmaeraXDeclarationsParser {
   }
 
   private def parseUnitAnnotation(tokens : List[Token]) : (MeasureUnit, List[Token]) = {
-    val (unit, remainder) = tokens.span(x => !x.tok.equals(PERIOD))
-    val actualRemainder = remainder.tail
-    checkInput(unit.length == 1 || unit.length == 0, "unit annotation expected in declaration", if(tokens.isEmpty) UnknownLocation else tokens.head.loc, "parsing unit-annotated variable")
     /* @todo we really should check whether the unit identifier was declared in ProgramUnits, but that would require lots of changes to pass in the map,
      * so I'm not going to do that - I guess it can be checked at some later stage? I hope... */
-    unit match {
-      case Nil => (AnyUnit, actualRemainder)
-      case List(Token(IDENT(id, _), loc)) => (UnitUnit(id), actualRemainder)
-      case List(Token(wat, loc)) => throw new ParseException("identifier expected for unit annotation at ", loc, wat.toString, ".", "", "declaration parse")
-      case _ => throw new ParseException("too many things following colon at ", UnknownLocation, "", ".", "", "declaration parse")
+    val parser = KeYmaeraXParser // just use this to parse unit annotations, since they can have exponents/products
+    val (unitTemp, remainderTemp) = tokens.span(x => !x.tok.equals(PERIOD))
+    // numbers are lexed with the final period included when they're at the end of a unit annotation,
+    // so this dirty hack is to work around that
+    val (unit : List[Token], remainder : List[Token]) = if(remainderTemp.isEmpty) {
+      val (ok, List(Token(NUMBER(weird), _))) = unitTemp.splitAt(unitTemp.length-1)
+      (ok :+ Token(NUMBER(weird.dropRight(1))), List(PERIOD))
+    } else (unitTemp, remainderTemp)
+    // make the unit expression into a "formula" so we can use the KeYmaeraXParser to parse it for us
+    val hack = unit ++ (Token(EQ) :: unit) :+ Token(EOF)
+    val Equal(ut, _) = parser.formulaTokenParser(hack)
+    parsedUnitAnnotationToUnit(ut) match {
+      case None => throw new ParseException("Invalid unit annotation ", UnknownLocation, "", ".", "", "declaration parse")
+      case Some(u) => (u, remainder.tail)
+    }
+  }
+
+  private def parsedUnitAnnotationToUnit(annot : Term) : Option[MeasureUnit] = {
+    // just to use some of the utility functions that don't depend on the result
+    // @todo maybe move those utility functions into a separate class
+    val checker = UnitChecker(KeYmaeraXProblemParserResult(Map(), Map()))
+    annot match {
+      case Times(l, r) => (parsedUnitAnnotationToUnit(l), parsedUnitAnnotationToUnit(r)) match {
+        case (Some(lu), Some(ru)) => Some(checker.multiplyUnits(lu, ru))
+        case _ => None
+      }
+      case Divide(l, r) => (parsedUnitAnnotationToUnit(l), parsedUnitAnnotationToUnit(r)) match {
+        case (Some(lu), Some(ru)) => Some(checker.divideUnits(lu, ru))
+        case _ => None
+      }
+      // @todo again the bad assumption that the exponent is a number...
+      case Power(l, e) => parsedUnitAnnotationToUnit(l) match {
+        case Some(u) => checker.exponentiateUnit(u, e)
+        case None => None
+      }
+      case Variable(name, _, _) => Some(UnitUnit(name))
+      case _ => None
     }
   }
 

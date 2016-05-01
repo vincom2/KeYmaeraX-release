@@ -29,14 +29,61 @@ class UnitTypeParserTests extends TacticTestBase {
     result match {
       case Greater(l,r) => l.sort shouldBe Real
     }
+    units("m") shouldBe Map()
+    map("x", None) shouldBe (None, Real, UnitUnit("m"))
+  }
 
-    units.get("m") match {
-      case Some(m) => m shouldBe Map()
-    }
+  it should "parse unit annotations with products" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m*m.
+        |End.
+        |Problem.
+        | x = 0
+        |End.
+      """.stripMargin
+    val (result, KeYmaeraXProblemParserResult(map, units)) = KeYmaeraXProblemParser(input)
+    result shouldBe Equal(Variable("x"), Number(0))
+    map("x", None) shouldBe (None, Real, ProductUnit(Map() + ("m" -> 2)))
+  }
 
-    map.get("x", None) match {
-      case Some(x) => x shouldBe (None, Real, UnitUnit("m"))
-    }
+  it should "parse unit annotations with quotients" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m/m.
+        |End.
+        |Problem.
+        | x = 0
+        |End.
+      """.stripMargin
+    val (result, KeYmaeraXProblemParserResult(map, units)) = KeYmaeraXProblemParser(input)
+    result shouldBe Equal(Variable("x"), Number(0))
+    map("x", None) shouldBe (None, Real, ProductUnit(Map() + ("m" -> 0)))
+  }
 
+  it should "parse unit annotations with exponents" in {
+    val input =
+      """
+        |ProgramUnits.
+        | U m.
+        |End.
+        |ProgramVariables.
+        | R x : m^2.
+        |End.
+        |Problem.
+        | x = 0
+        |End.
+      """.stripMargin
+    val (result, KeYmaeraXProblemParserResult(map, units)) = KeYmaeraXProblemParser(input)
+    result shouldBe Equal(Variable("x"), Number(0))
+    map("x", None) shouldBe (None, Real, ProductUnit(Map() + ("m" -> 2)))
   }
 }
