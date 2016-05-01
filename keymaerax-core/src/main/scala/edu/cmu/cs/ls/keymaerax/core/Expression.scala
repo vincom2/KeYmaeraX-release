@@ -56,6 +56,7 @@ case class ObjectSort(name : String) extends Sort { override def toString = name
 
 /**
   * Units of measure
+  * Created by vincenth on 4/25/16.
   */
 sealed abstract class MeasureUnit
 /** General unit type, where the int is a unique identifier (icky, but hopefully enough for now) */
