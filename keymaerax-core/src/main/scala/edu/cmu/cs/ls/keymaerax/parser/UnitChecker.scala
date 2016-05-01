@@ -134,7 +134,6 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       case False => Some("wat")
       case Equal(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
         case (Some(lu), Some(ru)) => if(lu == ru) None else Some("unit error in = expression")
-        // @todo don't use ==, write an equality function that uses unitMap to check for abbreviations
         case (Some(_), None) => Some("unit error in term on RHS of =")
         case (None, Some(_)) => Some("unit error in term on LHS of =")
         case _ => Some("unit error on both sides of =")
