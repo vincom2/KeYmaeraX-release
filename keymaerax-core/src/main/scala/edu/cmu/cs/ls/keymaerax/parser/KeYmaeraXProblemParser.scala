@@ -20,7 +20,7 @@ import scala.annotation.tailrec
   *                  * conversion factors corresponding to said unit
   */
 case class KeYmaeraXProblemParserResult (variableMap : Map[(String, Option[Int]), (Option[Sort], Sort, MeasureUnit)]
-                                        ,unitMap     : Map[String, (Map[MeasureUnit, Int])])
+                                        ,unitMap     : Map[String, (Map[MeasureUnit, Int])]) // @todo fool! this should be MeasureUnit, Number
 /**
  * Parses .kyx files.
  * @todo check sorts
