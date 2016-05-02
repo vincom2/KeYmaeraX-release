@@ -39,12 +39,14 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
         case None => None
       }
       case Number(_) => Some(AnyUnit)
-      // case Function(_, _, _, _) => Some(AnyUnit) // @todo this is not right, but it's not like we've handled functions elsewhere either...
+      case FuncOf(_, _) => Some(AnyUnit) // @todo this is not right, but it's not like we've handled functions elsewhere either...
       // a bunch of internal (I think) cases omitted
       case Neg(c) => getUnitOfTerm(c)
       case Plus(l, r) => {
         (getUnitOfTerm(l), getUnitOfTerm(r)) match {
           case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) Some(lu) else None
+          // @todo suboptimal?: if the left unit is less specific (AnyUnit), the code takes it as the unit anyway
+          // actually, I think the other way of doing it rejects too many valid programs... think harder about this
           case _ => None
         }
       }
@@ -115,10 +117,13 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
         // XXX is this a good idea? what if someone else creates a ProductUnit map without using withDefaultValue(0)?
         // maybe we should just use getOrElse instead?
         val result1 = Map().withDefaultValue(0) + (s1 -> 1)
-        ProductUnit(result1 + (s2 -> (result1(s2)+1)))
+        ProductUnit(result1 + (s2 -> (result1.getOrElse(s2, 0)+1)))
       }
-      case (ProductUnit(m), UnitUnit(s)) => ProductUnit(m + (s -> (m(s)+1)))
-      case (UnitUnit(s), ProductUnit(m)) => ProductUnit(m + (s -> (m(s)+1)))
+      case (ProductUnit(m), UnitUnit(s)) => ProductUnit(m + (s -> (m.getOrElse(s, 0)+1)))
+      case (UnitUnit(s), ProductUnit(m)) => ProductUnit(m + (s -> (m.getOrElse(s, 0)+1)))
+      case (ProductUnit(m1), ProductUnit(m2)) => {
+        ProductUnit(m1.map({ case (s, e) => (s, e + m2.getOrElse(s, 0)) }))
+      }
     }
   }
 
@@ -138,13 +143,16 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
         // XXX is this a good idea? what if someone else creates a ProductUnit map without using withDefaultValue(0)?
         // maybe we should just use getOrElse instead?
         val result1 = Map().withDefaultValue(0) + (s1 -> 1)
-        ProductUnit(result1 + (s2 -> (result1(s2)-1)))
+        ProductUnit(result1 + (s2 -> (result1.getOrElse(s2, 0)-1)))
         // "weed out" units that lookup to 0?
       }
       case (ProductUnit(m), UnitUnit(s)) => ProductUnit(m + (s -> (m(s)-1)))
       case (UnitUnit(s), ProductUnit(m)) => {
         val m2 = m.mapValues(e => -e)
-        ProductUnit(m2 + (s -> (m2(s)+1)))
+        ProductUnit(m2 + (s -> (m2.getOrElse(s, 0)+1)))
+      }
+      case (ProductUnit(m1), ProductUnit(m2)) => {
+        ProductUnit(m1.map({ case (s, e) => (s, e - m2.getOrElse(s, 0)) }))
       }
     }
   }
@@ -175,7 +183,7 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
       case GreaterEqual(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
         case (Some(lu), Some(ru)) => if(unitsEqual(lu, ru)) None else Some("unit error in >= expression")
         case (Some(_), None) => Some("unit error in term on RHS of >=")
-        case (None, Some(_)) => Some("unit error in term on LHS of >=")
+        case (None, Some(_)) => Some("unit error in term on LHS of <=\n Problematic term is " + l.toString)
         case _ => Some("unit error on both sides of >=")
       }
       case Greater(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
@@ -189,7 +197,7 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
           Some("unit error in <= expression\nLHS has unit " + lu.toString + "\nRHS has unit " + ru.toString)
         }
         case (Some(_), None) => Some("unit error in term on RHS of <=")
-        case (None, Some(_)) => Some("unit error in term on LHS of <=")
+        case (None, Some(_)) => Some("unit error in term on LHS of <=\n Problematic term is " + l.toString)
         case _ => Some("unit error on both sides of <=")
       }
       case Less(l, r) => (getUnitOfTerm(l), getUnitOfTerm(r)) match {
@@ -198,8 +206,8 @@ case class UnitChecker(r : KeYmaeraXProblemParserResult) {
         case (None, Some(_)) => Some("unit error in term on LHS of <")
         case _ => Some("unit error on both sides of <")
       }
-      case PredOf(_, _) => Some("PredOf???")
-      case PredicationalOf(_, _) => Some("PredicationalOf???")
+      case PredOf(_, _) => None // Some("PredOf???")
+      case PredicationalOf(_, _) => None // Some("PredicationalOf???")
       case Not(f) => unitAnalysis(f)
       case And(l, r) => unitAnalysis(l) match {
         case None => unitAnalysis(r)
